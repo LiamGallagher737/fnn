@@ -4,6 +4,9 @@
 
  A simple Feedforward Neural Network library for Rust
 
+[![crates.io](https://img.shields.io/crates/v/fnn?style=for-the-badge)](https://crates.io/crates/fnn)
+[![docs.rs](https://img.shields.io/docsrs/fnn?style=for-the-badge)](https://docs.rs/fnn/latest/fnn)
+
 </div>
 
 ## Features
