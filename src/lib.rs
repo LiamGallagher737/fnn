@@ -19,6 +19,12 @@ pub struct FeedForward<const INPUTS: usize, const HIDDEN: usize, const OUTPUT: u
     output_bias: SVector<f32, OUTPUT>,
 }
 
+impl<const INPUTS: usize, const HIDDEN: usize, const OUTPUT: usize> Default for FeedForward<INPUTS, HIDDEN, OUTPUT> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<const INPUTS: usize, const HIDDEN: usize, const OUTPUT: usize>
     FeedForward<INPUTS, HIDDEN, OUTPUT>
     
@@ -64,11 +70,11 @@ impl<const INPUTS: usize, const HIDDEN: usize, const OUTPUT: usize>
     /// Feed an input through the network and get the predicted output value.
     pub fn forward(&self, input: &SVector<f32, INPUTS>) -> SVector<f32, OUTPUT> {
         // Hidden layer
-        let hidden = &self.hidden_weights * input + &self.hidden_bias;
+        let hidden = self.hidden_weights * input + self.hidden_bias;
         let hidden_activated = hidden.map(sigmoid);
 
         // Output layer
-        let output = &self.output_weights * &hidden_activated + &self.output_bias;
+        let output = self.output_weights * hidden_activated + self.output_bias;
         output.map(sigmoid)
     }
 
@@ -80,13 +86,13 @@ impl<const INPUTS: usize, const HIDDEN: usize, const OUTPUT: usize>
         learning_rate: f32,
     ) {
         // Forward pass
-        let hidden = &self.hidden_weights * input + &self.hidden_bias;
+        let hidden = self.hidden_weights * input + self.hidden_bias;
         let hidden_activated = hidden.map(sigmoid);
-        let output = &self.output_weights * &hidden_activated + &self.output_bias;
+        let output = self.output_weights * hidden_activated + self.output_bias;
         let output_activated = output.map(sigmoid);
 
         // Output layer backprop
-        let output_error = target - &output_activated;
+        let output_error = target - output_activated;
         let output_delta = output_error.component_mul(&output.map(sigmoid_derivative));
 
         // Hidden layer backprop
