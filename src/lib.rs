@@ -13,10 +13,10 @@ use nalgebra::{SMatrix, SVector};
 /// The value of the hidden count is one you can tune to fit your usecase. Keep increasing it until
 /// either accuracy is good enough for you or there are no longer any gains to be had.
 pub struct FeedForward<const INPUTS: usize, const HIDDEN: usize, const OUTPUT: usize = 1> {
-    hidden_weights: SMatrix<f32, HIDDEN, INPUTS>,
-    output_weights: SMatrix<f32, OUTPUT, HIDDEN>,
-    hidden_bias: SVector<f32, HIDDEN>,
-    output_bias: SVector<f32, OUTPUT>,
+    hidden_weights: SMatrix<f64, HIDDEN, INPUTS>,
+    output_weights: SMatrix<f64, OUTPUT, HIDDEN>,
+    hidden_bias: SVector<f64, HIDDEN>,
+    output_bias: SVector<f64, OUTPUT>,
 }
 
 impl<const INPUTS: usize, const HIDDEN: usize, const OUTPUT: usize> Default
@@ -32,10 +32,10 @@ impl<const INPUTS: usize, const HIDDEN: usize, const OUTPUT: usize>
 {
     /// Create a new [`FeedForward`] neural network.
     pub fn new() -> Self {
-        let mut hidden_weights = SMatrix::<f32, HIDDEN, INPUTS>::zeros();
-        let mut output_weights = SMatrix::<f32, OUTPUT, HIDDEN>::zeros();
-        let mut hidden_bias = SVector::<f32, HIDDEN>::zeros();
-        let mut output_bias = SVector::<f32, OUTPUT>::zeros();
+        let mut hidden_weights = SMatrix::<f64, HIDDEN, INPUTS>::zeros();
+        let mut output_weights = SMatrix::<f64, OUTPUT, HIDDEN>::zeros();
+        let mut hidden_bias = SVector::<f64, HIDDEN>::zeros();
+        let mut output_bias = SVector::<f64, OUTPUT>::zeros();
 
         // Initialize weights with deterministic values
         let mut i = 0;
@@ -69,7 +69,7 @@ impl<const INPUTS: usize, const HIDDEN: usize, const OUTPUT: usize>
     }
 
     /// Feed an input through the network and get the predicted output value.
-    pub fn forward(&self, input: &SVector<f32, INPUTS>) -> SVector<f32, OUTPUT> {
+    pub fn forward(&self, input: &SVector<f64, INPUTS>) -> SVector<f64, OUTPUT> {
         // Hidden layer
         let hidden = self.hidden_weights * input + self.hidden_bias;
         let hidden_activated = hidden.map(sigmoid);
@@ -82,9 +82,9 @@ impl<const INPUTS: usize, const HIDDEN: usize, const OUTPUT: usize>
     /// Train this network on an input and its expected output.
     pub fn train(
         &mut self,
-        input: &SVector<f32, INPUTS>,
-        target: &SVector<f32, OUTPUT>,
-        learning_rate: f32,
+        input: &SVector<f64, INPUTS>,
+        target: &SVector<f64, OUTPUT>,
+        learning_rate: f64,
     ) {
         // Forward pass
         let hidden = self.hidden_weights * input + self.hidden_bias;
@@ -110,18 +110,18 @@ impl<const INPUTS: usize, const HIDDEN: usize, const OUTPUT: usize>
 }
 
 #[inline]
-fn sigmoid(x: f32) -> f32 {
-    1.0 / (1.0 + libm::expf(-x))
+fn sigmoid(x: f64) -> f64 {
+    1.0 / (1.0 + libm::exp(-x))
 }
 
 #[inline]
-fn sigmoid_derivative(x: f32) -> f32 {
+fn sigmoid_derivative(x: f64) -> f64 {
     let s = sigmoid(x);
     s * (1.0 - s)
 }
 
-const fn simple_hash(x: usize, y: usize) -> f32 {
-    let h = (x.wrapping_mul(31).wrapping_add(y)) as f32;
+const fn simple_hash(x: usize, y: usize) -> f64 {
+    let h = (x.wrapping_mul(31).wrapping_add(y)) as f64;
     (h % 100.0) / 100.0 - 0.5
 }
 
@@ -145,15 +145,15 @@ mod tests {
         // Train network
         for _ in 0..10_000 {
             for (input, target) in &training_data {
-                let input = SVector::<f32, 2>::from_column_slice(input);
-                let target = SVector::<f32, 1>::from_column_slice(target);
+                let input = SVector::<f64, 2>::from_column_slice(input);
+                let target = SVector::<f64, 1>::from_column_slice(target);
                 nn.train(&input, &target, 0.1);
             }
         }
 
         // Test predictions
         for (input, expected) in &training_data {
-            let input = SVector::<f32, 2>::from_column_slice(input);
+            let input = SVector::<f64, 2>::from_column_slice(input);
             let output = nn.forward(&input);
             // Allow some margin of error
             assert!((output[0] - expected[0]).abs() < 0.2);
@@ -166,7 +166,7 @@ mod tests {
         let mut nn = FeedForward::<1, 8, 1>::new();
 
         // Generate training data: map x -> sin(x)
-        let training_data: [(f32, f32); 8] = [
+        let training_data: [(f64, f64); 8] = [
             (0.0, 0.0),
             (0.25, 0.707),
             (0.5, 1.0),
@@ -180,15 +180,15 @@ mod tests {
         // Train network
         for _ in 0..10_000 {
             for &(x, y) in &training_data {
-                let input = SVector::<f32, 1>::from_column_slice(&[x]);
-                let target = SVector::<f32, 1>::from_column_slice(&[y]);
+                let input = SVector::<f64, 1>::from_column_slice(&[x]);
+                let target = SVector::<f64, 1>::from_column_slice(&[y]);
                 nn.train(&input, &target, 0.05);
             }
         }
 
         // Test interpolation
         let test_x = 0.5; // Should predict close to sin(0.5) ≈ 1.0
-        let input = SVector::<f32, 1>::from_column_slice(&[test_x]);
+        let input = SVector::<f64, 1>::from_column_slice(&[test_x]);
         let output = nn.forward(&input);
         assert!((output[0] - 1.0).abs() < 0.2);
     }
@@ -205,23 +205,23 @@ mod tests {
         // Train to recognize X (output 1) vs O (output 0)
         for _ in 0..1000 {
             // Train on X pattern
-            let input = SVector::<f32, 9>::from_column_slice(&x_pattern);
-            let target = SVector::<f32, 1>::from_column_slice(&[1.0]);
+            let input = SVector::<f64, 9>::from_column_slice(&x_pattern);
+            let target = SVector::<f64, 1>::from_column_slice(&[1.0]);
             nn.train(&input, &target, 0.1);
 
             // Train on O pattern
-            let input = SVector::<f32, 9>::from_column_slice(&o_pattern);
-            let target = SVector::<f32, 1>::from_column_slice(&[0.0]);
+            let input = SVector::<f64, 9>::from_column_slice(&o_pattern);
+            let target = SVector::<f64, 1>::from_column_slice(&[0.0]);
             nn.train(&input, &target, 0.1);
         }
 
         // Test X pattern
-        let input = SVector::<f32, 9>::from_column_slice(&x_pattern);
+        let input = SVector::<f64, 9>::from_column_slice(&x_pattern);
         let output = nn.forward(&input);
         assert!(output[0] > 0.8); // Should strongly predict X
 
         // Test O pattern
-        let input = SVector::<f32, 9>::from_column_slice(&o_pattern);
+        let input = SVector::<f64, 9>::from_column_slice(&o_pattern);
         let output = nn.forward(&input);
         assert!(output[0] < 0.2); // Should strongly predict O
     }
@@ -231,14 +231,14 @@ mod tests {
         let nn = FeedForward::<3, 4, 2>::new();
 
         // Test repeated forward passes produce same result
-        let input = SVector::<f32, 3>::from_column_slice(&[0.5, 0.5, 0.5]);
+        let input = SVector::<f64, 3>::from_column_slice(&[0.5, 0.5, 0.5]);
         let first_output = nn.forward(&input);
         let second_output = nn.forward(&input);
 
         assert_eq!(first_output, second_output);
 
         // Test small input changes produce small output changes
-        let perturbed_input = SVector::<f32, 3>::from_column_slice(&[0.51, 0.5, 0.5]);
+        let perturbed_input = SVector::<f64, 3>::from_column_slice(&[0.51, 0.5, 0.5]);
         let perturbed_output = nn.forward(&perturbed_input);
 
         // Output shouldn't change drastically for small input change
@@ -250,8 +250,8 @@ mod tests {
         let mut nn = FeedForward::<1, 3, 1>::new();
 
         // Simple function to learn: f(x) = x * 2
-        let input = SVector::<f32, 1>::from_column_slice(&[0.5]);
-        let target = SVector::<f32, 1>::from_column_slice(&[1.0]);
+        let input = SVector::<f64, 1>::from_column_slice(&[0.5]);
+        let target = SVector::<f64, 1>::from_column_slice(&[1.0]);
 
         let initial_error = (nn.forward(&input)[0] - target[0]).abs();
 
