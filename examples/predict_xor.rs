@@ -1,4 +1,4 @@
-use fnn::{na::SVector, FeedForward, Sigmoid};
+use fnn::prelude::*;
 
 fn main() {
     // Create a new feed forward neural network.

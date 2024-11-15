@@ -2,11 +2,17 @@
 
 use core::marker::PhantomData;
 
-pub use activator::*;
+use activator::Activator;
+use na::{SMatrix, SVector};
 pub use nalgebra as na;
-use nalgebra::{SMatrix, SVector};
 
-mod activator;
+pub mod activator;
+
+pub mod prelude {
+    pub use crate::activator::*;
+    pub use crate::FeedForward;
+    pub use nalgebra::SVector;
+}
 
 /// A [Feedforward Neural Network](https://en.wikipedia.org/wiki/Feedforward_neural_network).
 ///
@@ -131,8 +137,7 @@ const fn simple_hash(x: usize, y: usize) -> f64 {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use nalgebra::SVector;
+    use super::prelude::*;
 
     #[test]
     fn test_binary_classification_xor() {
