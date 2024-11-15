@@ -23,15 +23,15 @@ fn main() {
     // Train
     for _ in 0..50_000 {
         for (input, target) in &training_data {
-            let input = SVector::<f32, 2>::from_column_slice(input);
-            let target = SVector::<f32, 1>::from_column_slice(target);
+            let input = SVector::from_column_slice(input);
+            let target = SVector::from_column_slice(target);
             nn.train(&input, &target, 0.1);
         }
     }
 
     // Predict
     for (input, expected) in &training_data {
-        let output = nn.forward(&SVector::<f32, 2>::from_column_slice(input));
+        let output = nn.forward(&SVector::from_column_slice(input));
         let difference = (expected[0] - output[0]).abs() * 100.0;
         println!(
             "Input: {input:?}, Output: {}, Expected: {}, Accuracy: {}%",
