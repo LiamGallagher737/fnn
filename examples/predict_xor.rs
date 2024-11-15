@@ -1,4 +1,4 @@
-use fnn::{na::SVector, FeedForward};
+use fnn::{na::SVector, FeedForward, Sigmoid};
 
 fn main() {
     // Create a new feed forward neural network.
@@ -10,7 +10,7 @@ fn main() {
     //
     // The number of hidden layers is something you can tune. I found that for
     // this example any more than 2 did not result in any accuracy improvement.
-    let mut nn = FeedForward::<2, 2, 1>::new();
+    let mut nn = FeedForward::<Sigmoid, 2, 2, 1>::new();
 
     // Data
     let training_data = [
