@@ -74,7 +74,7 @@ pub mod prelude {
 /// The four generics are:
 /// - Activator
 /// - Input count
-/// - Hidden layer count
+/// - Hidden neuron count
 /// - Output count
 ///
 /// Multiple [`Activator`]'s a provided using different math functions.
