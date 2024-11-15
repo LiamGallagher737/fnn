@@ -26,6 +26,7 @@ pub mod prelude {
 ///
 /// The value of the hidden count is one you can tune to fit your usecase. Keep increasing it until
 /// either accuracy is good enough for you or there are no longer any gains to be had.
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct FeedForward<
     A: Activator,
     const INPUTS: usize,
