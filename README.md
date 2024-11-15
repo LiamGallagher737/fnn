@@ -10,6 +10,7 @@
 
 - First class support for `no_std` environments
 - Simplicity
+- Deterministic
 - It works
 
 ## Usage
