@@ -130,7 +130,7 @@ impl<A: Activator, const INPUTS: usize, const HIDDEN: usize, const OUTPUT: usize
     }
 }
 
-const fn simple_hash(x: usize, y: usize) -> f64 {
+fn simple_hash(x: usize, y: usize) -> f64 {
     let h = (x.wrapping_mul(31).wrapping_add(y)) as f64;
     (h % 100.0) / 100.0 - 0.5
 }
