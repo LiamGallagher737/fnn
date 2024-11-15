@@ -44,7 +44,7 @@
 //! let output = nn.forward(&SVector::from_column_slice(&[0.0, 1.0]));
 //! ```
 //!
-//! The [full example](examples/predict_xor.rs) can produce decently accurate results with these parameters:
+//! The [full example](https://github.com/LiamGallagher737/fnn/blob/main/examples/predict_xor.rs) can produce decently accurate results with these parameters:
 //!
 //! ```text
 //! Input: [0.0, 0.0], Output: 0.015919467, Expected: 0, Accuracy: 98.40805%
