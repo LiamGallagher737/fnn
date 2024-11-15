@@ -17,7 +17,7 @@
 To create a new neural network you can use the following. This creates a network that takes two inputs, has two hidden neurons and gives one output.
 
 ```rs
-let mut nn = FeedForward::<2, 2, 1>::new();
+let mut nn = FeedForward::<Sigmoid, 2, 2, 1>::new();
 ```
 
 Then given some training data like this:
