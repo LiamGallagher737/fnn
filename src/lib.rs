@@ -137,8 +137,7 @@ const fn simple_hash(x: usize, y: usize) -> f64 {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use nalgebra::SVector;
+    use super::prelude::*;
 
     #[test]
     fn test_binary_classification_xor() {
