@@ -1,7 +1,7 @@
 #![no_std]
 
-use nalgebra::{SMatrix, SVector};
 pub use nalgebra as na;
+use nalgebra::{SMatrix, SVector};
 
 /// A [Feedforward Neural Network](https://en.wikipedia.org/wiki/Feedforward_neural_network).
 ///
@@ -19,7 +19,9 @@ pub struct FeedForward<const INPUTS: usize, const HIDDEN: usize, const OUTPUT: u
     output_bias: SVector<f32, OUTPUT>,
 }
 
-impl<const INPUTS: usize, const HIDDEN: usize, const OUTPUT: usize> Default for FeedForward<INPUTS, HIDDEN, OUTPUT> {
+impl<const INPUTS: usize, const HIDDEN: usize, const OUTPUT: usize> Default
+    for FeedForward<INPUTS, HIDDEN, OUTPUT>
+{
     fn default() -> Self {
         Self::new()
     }
@@ -27,7 +29,6 @@ impl<const INPUTS: usize, const HIDDEN: usize, const OUTPUT: usize> Default for 
 
 impl<const INPUTS: usize, const HIDDEN: usize, const OUTPUT: usize>
     FeedForward<INPUTS, HIDDEN, OUTPUT>
-    
 {
     /// Create a new [`FeedForward`] neural network.
     pub fn new() -> Self {
