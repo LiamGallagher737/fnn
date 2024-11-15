@@ -9,6 +9,7 @@ readme = "README.md"
 category = ["no-std", "no-std::no-alloc", "mathematics", "science"]
 keywords = ["feedforward", "neural-network", "no_std"]
 authors = ["Liam Gallagher <liam@liamgallagher.dev>"]
+exclude = [".github"]
 
 [features]
 default = []
