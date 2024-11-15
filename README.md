@@ -55,7 +55,7 @@ let output = nn.forward(&SVector::from_column_slice(&[0.0, 1.0]));
 
 The [full example](examples/predict_xor.rs) can produce decently accurate results with these parameters:
 
-```
+```rs
 Input: [0.0, 0.0], Output: 0.015919467, Expected: 0, Accuracy: 98.40805%
 Input: [0.0, 1.0], Output: 0.9832184, Expected: 1, Accuracy: 98.32184%
 Input: [1.0, 0.0], Output: 0.98321366, Expected: 1, Accuracy: 98.321365%
