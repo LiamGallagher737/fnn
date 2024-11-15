@@ -1,34 +1,48 @@
 #![no_std]
 
+use core::marker::PhantomData;
+
+pub use activator::*;
 pub use nalgebra as na;
 use nalgebra::{SMatrix, SVector};
 
+mod activator;
+
 /// A [Feedforward Neural Network](https://en.wikipedia.org/wiki/Feedforward_neural_network).
 ///
-/// The const generics are:
+/// The four generics are:
+/// - Activator
 /// - Input count
 /// - Hidden layer count
 /// - Output count
 ///
+/// Multiple [`Activator`]'s a provided using different math functions.
+///
 /// The value of the hidden count is one you can tune to fit your usecase. Keep increasing it until
 /// either accuracy is good enough for you or there are no longer any gains to be had.
-pub struct FeedForward<const INPUTS: usize, const HIDDEN: usize, const OUTPUT: usize = 1> {
+pub struct FeedForward<
+    A: Activator,
+    const INPUTS: usize,
+    const HIDDEN: usize,
+    const OUTPUT: usize = 1,
+> {
     hidden_weights: SMatrix<f64, HIDDEN, INPUTS>,
     output_weights: SMatrix<f64, OUTPUT, HIDDEN>,
     hidden_bias: SVector<f64, HIDDEN>,
     output_bias: SVector<f64, OUTPUT>,
+    _phantom: PhantomData<A>,
 }
 
-impl<const INPUTS: usize, const HIDDEN: usize, const OUTPUT: usize> Default
-    for FeedForward<INPUTS, HIDDEN, OUTPUT>
+impl<A: Activator, const INPUTS: usize, const HIDDEN: usize, const OUTPUT: usize> Default
+    for FeedForward<A, INPUTS, HIDDEN, OUTPUT>
 {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<const INPUTS: usize, const HIDDEN: usize, const OUTPUT: usize>
-    FeedForward<INPUTS, HIDDEN, OUTPUT>
+impl<A: Activator, const INPUTS: usize, const HIDDEN: usize, const OUTPUT: usize>
+    FeedForward<A, INPUTS, HIDDEN, OUTPUT>
 {
     /// Create a new [`FeedForward`] neural network.
     pub fn new() -> Self {
@@ -65,6 +79,7 @@ impl<const INPUTS: usize, const HIDDEN: usize, const OUTPUT: usize>
             output_weights,
             hidden_bias,
             output_bias,
+            _phantom: PhantomData,
         }
     }
 
@@ -72,11 +87,11 @@ impl<const INPUTS: usize, const HIDDEN: usize, const OUTPUT: usize>
     pub fn forward(&self, input: &SVector<f64, INPUTS>) -> SVector<f64, OUTPUT> {
         // Hidden layer
         let hidden = self.hidden_weights * input + self.hidden_bias;
-        let hidden_activated = hidden.map(sigmoid);
+        let hidden_activated = hidden.map(A::activate);
 
         // Output layer
         let output = self.output_weights * hidden_activated + self.output_bias;
-        output.map(sigmoid)
+        output.map(A::activate)
     }
 
     /// Train this network on an input and its expected output.
@@ -88,17 +103,17 @@ impl<const INPUTS: usize, const HIDDEN: usize, const OUTPUT: usize>
     ) {
         // Forward pass
         let hidden = self.hidden_weights * input + self.hidden_bias;
-        let hidden_activated = hidden.map(sigmoid);
+        let hidden_activated = hidden.map(A::activate);
         let output = self.output_weights * hidden_activated + self.output_bias;
-        let output_activated = output.map(sigmoid);
+        let output_activated = output.map(A::activate);
 
         // Output layer backprop
         let output_error = target - output_activated;
-        let output_delta = output_error.component_mul(&output.map(sigmoid_derivative));
+        let output_delta = output_error.component_mul(&output.map(A::derivative));
 
         // Hidden layer backprop
         let hidden_error = self.output_weights.transpose() * output_delta;
-        let hidden_delta = hidden_error.component_mul(&hidden.map(sigmoid_derivative));
+        let hidden_delta = hidden_error.component_mul(&hidden.map(A::derivative));
 
         // Update weights and biases
         self.output_weights += learning_rate * (output_delta * hidden_activated.transpose());
@@ -107,17 +122,6 @@ impl<const INPUTS: usize, const HIDDEN: usize, const OUTPUT: usize>
         self.hidden_weights += learning_rate * (hidden_delta * input.transpose());
         self.hidden_bias += learning_rate * hidden_delta;
     }
-}
-
-#[inline]
-fn sigmoid(x: f64) -> f64 {
-    1.0 / (1.0 + libm::exp(-x))
-}
-
-#[inline]
-fn sigmoid_derivative(x: f64) -> f64 {
-    let s = sigmoid(x);
-    s * (1.0 - s)
 }
 
 const fn simple_hash(x: usize, y: usize) -> f64 {
@@ -133,7 +137,7 @@ mod tests {
     #[test]
     fn test_binary_classification_xor() {
         // XOR problem: needs hidden layer to solve
-        let mut nn = FeedForward::<2, 4, 1>::new();
+        let mut nn = FeedForward::<Sigmoid, 2, 4, 1>::new();
 
         let training_data = [
             ([0.0, 0.0], [0.0]),
@@ -163,7 +167,7 @@ mod tests {
     #[test]
     fn test_regression_sine_wave() {
         // Predict sine wave values
-        let mut nn = FeedForward::<1, 8, 1>::new();
+        let mut nn = FeedForward::<Sigmoid, 1, 8, 1>::new();
 
         // Generate training data: map x -> sin(x)
         let training_data: [(f64, f64); 8] = [
@@ -196,7 +200,7 @@ mod tests {
     #[test]
     fn test_pattern_recognition() {
         // Simple 3x3 pattern recognition (9 inputs)
-        let mut nn = FeedForward::<9, 5, 1>::new();
+        let mut nn = FeedForward::<Sigmoid, 9, 5, 1>::new();
 
         // Training patterns (flattened 3x3 grids)
         let x_pattern = [1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0];
@@ -228,7 +232,7 @@ mod tests {
 
     #[test]
     fn test_network_stability() {
-        let nn = FeedForward::<3, 4, 2>::new();
+        let nn = FeedForward::<Sigmoid, 3, 4, 2>::new();
 
         // Test repeated forward passes produce same result
         let input = SVector::<f64, 3>::from_column_slice(&[0.5, 0.5, 0.5]);
@@ -247,7 +251,7 @@ mod tests {
 
     #[test]
     fn test_learning_convergence() {
-        let mut nn = FeedForward::<1, 3, 1>::new();
+        let mut nn = FeedForward::<Sigmoid, 1, 3, 1>::new();
 
         // Simple function to learn: f(x) = x * 2
         let input = SVector::<f64, 1>::from_column_slice(&[0.5]);
