@@ -36,6 +36,5 @@ jobs:
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
-      - uses: Leafwing-Studios/cargo-cache@v2
       - name: Cargo fmt
         run: cargo fmt --all --check
