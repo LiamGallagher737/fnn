@@ -2,16 +2,16 @@
 
 use core::marker::PhantomData;
 
-pub use nalgebra as na;
-use na::{SMatrix, SVector};
 use activator::Activator;
+use na::{SMatrix, SVector};
+pub use nalgebra as na;
 
 pub mod activator;
 
 pub mod prelude {
-    pub use nalgebra::SVector;
     pub use crate::activator::*;
     pub use crate::FeedForward;
+    pub use nalgebra::SVector;
 }
 
 /// A [Feedforward Neural Network](https://en.wikipedia.org/wiki/Feedforward_neural_network).
