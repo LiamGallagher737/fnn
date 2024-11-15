@@ -87,7 +87,7 @@ impl<const INPUTS: usize, const HIDDEN: usize, const OUTPUT: usize>
         learning_rate: f32,
     ) {
         // Forward pass
-        let hidden = self.hidden_weights * input + self.hidden_bias;
+        let hidden = self.hidden_weights * input + &self.hidden_bias;
         let hidden_activated = hidden.map(sigmoid);
         let output = self.output_weights * hidden_activated + self.output_bias;
         let output_activated = output.map(sigmoid);
