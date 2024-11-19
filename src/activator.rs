@@ -150,3 +150,142 @@ impl Activator for HardSigmoid {
         }
     }
 }
+
+#[cfg(test)]
+mod edge_case_tests {
+    use super::*;
+
+    #[test]
+    fn test_linear_edge_cases() {
+        // Check extreme values
+        assert_eq!(Linear::activate(-1000.0), -1000.0);
+        assert_eq!(Linear::activate(1000.0), 1000.0);
+
+        // Check derivative for any input
+        assert_eq!(Linear::derivative(0.0), 1.0);
+        assert_eq!(Linear::derivative(-1000.0), 1.0);
+        assert_eq!(Linear::derivative(1000.0), 1.0);
+    }
+
+    #[test]
+    fn test_sigmoid_edge_cases() {
+        // Extreme positive and negative inputs
+        assert!((Sigmoid::activate(100.0) - 1.0).abs() < 1e-6);
+        assert!((Sigmoid::activate(-100.0) - 0.0).abs() < 1e-6);
+
+        // Near-zero input
+        assert!((Sigmoid::activate(0.0) - 0.5).abs() < 1e-6);
+
+        // Derivative at 0
+        assert!((Sigmoid::derivative(0.0) - 0.25).abs() < 1e-6);
+    }
+
+    #[test]
+    fn test_tanh_edge_cases() {
+        // Extreme positive and negative inputs
+        assert!((Tanh::activate(100.0) - 1.0).abs() < 1e-6);
+        assert!((Tanh::activate(-100.0) - (-1.0)).abs() < 1e-6);
+
+        // Near-zero input
+        assert!((Tanh::activate(0.0) - 0.0).abs() < 1e-6);
+
+        // Derivative at 0
+        assert!((Tanh::derivative(0.0) - 1.0).abs() < 1e-6);
+    }
+
+    #[test]
+    fn test_relu_edge_cases() {
+        // Inputs around 0
+        assert_eq!(ReLU::activate(0.0), 0.0);
+        assert_eq!(ReLU::activate(-0.0), 0.0);
+        assert_eq!(ReLU::activate(-1.0), 0.0);
+
+        // Positive input
+        assert_eq!(ReLU::activate(1.0), 1.0);
+
+        // Derivative at 0
+        assert_eq!(ReLU::derivative(0.0), 0.0);
+        assert_eq!(ReLU::derivative(-1.0), 0.0);
+        assert_eq!(ReLU::derivative(1.0), 1.0);
+    }
+
+    #[test]
+    fn test_leaky_relu_edge_cases() {
+        // Negative input
+        assert_eq!(LeakyReLU::activate(-1.0), -0.01);
+        assert_eq!(LeakyReLU::activate(-100.0), -1.0);
+
+        // Zero and positive inputs
+        assert_eq!(LeakyReLU::activate(0.0), 0.0);
+        assert_eq!(LeakyReLU::activate(1.0), 1.0);
+
+        // Derivative
+        assert_eq!(LeakyReLU::derivative(-1.0), 0.01);
+        assert_eq!(LeakyReLU::derivative(1.0), 1.0);
+    }
+
+    #[test]
+    fn test_swish_edge_cases() {
+        // Negative, zero, and positive inputs
+        assert!((Swish::activate(-10.0) - (-10.0 * Sigmoid::activate(-10.0))).abs() < 1e-6);
+        assert!((Swish::activate(0.0) - 0.0).abs() < 1e-6);
+        assert!((Swish::activate(10.0) - (10.0 * Sigmoid::activate(10.0))).abs() < 1e-6);
+
+        // Derivative at 0
+        assert!((Swish::derivative(0.0) - 0.5).abs() < 1e-6);
+    }
+
+    #[test]
+    fn test_elu_edge_cases() {
+        // Negative input close to 0
+        assert!((ELU::activate(-1e-5) - (libm::exp(-1e-5) - 1.0)).abs() < 1e-6);
+
+        // Negative input far from 0
+        assert!((ELU::activate(-10.0) - (libm::exp(-10.0) - 1.0)).abs() < 1e-6);
+
+        // Zero and positive input
+        assert_eq!(ELU::activate(0.0), 0.0);
+        assert_eq!(ELU::activate(1.0), 1.0);
+
+        // Derivative
+        assert!((ELU::derivative(-1e-5) - libm::exp(-1e-5)).abs() < 1e-6);
+        assert_eq!(ELU::derivative(0.0), 1.0);
+    }
+
+    #[test]
+    fn test_softplus_edge_cases() {
+        // Large negative input (should asymptote to 0)
+        assert!((Softplus::activate(-100.0) - 0.0).abs() < 1e-6);
+
+        // Large positive input (should asymptote to the input itself)
+        assert!((Softplus::activate(100.0) - 100.0).abs() < 1e-6);
+
+        // Near-zero input
+        assert!((Softplus::activate(0.0) - libm::log(2.0)).abs() < 1e-6);
+    }
+
+    #[test]
+    fn test_hard_sigmoid_edge_cases() {
+        // Extreme positive and negative inputs
+        assert_eq!(HardSigmoid::activate(-100.0), 0.0);
+        assert_eq!(HardSigmoid::activate(100.0), 1.0);
+
+        // Edge cases around clamping thresholds
+        assert_eq!(HardSigmoid::activate(-2.5), 0.0);
+        assert_eq!(HardSigmoid::activate(2.5), 1.0);
+
+        // Near-zero and in-between values
+        assert_eq!(HardSigmoid::activate(0.0), 0.5);
+        assert_eq!(HardSigmoid::activate(1.0), 0.7); // 0.2 * 1.0 + 0.5
+        assert_eq!(HardSigmoid::activate(-1.0), 0.3); // 0.2 * -1.0 + 0.5
+
+        // Derivative within the valid range
+        assert_eq!(HardSigmoid::derivative(0.0), 0.2);
+        assert_eq!(HardSigmoid::derivative(2.0), 0.2);
+        assert_eq!(HardSigmoid::derivative(-2.0), 0.2);
+
+        // Derivative outside the valid range
+        assert_eq!(HardSigmoid::derivative(-3.0), 0.0);
+        assert_eq!(HardSigmoid::derivative(3.0), 0.0);
+    }
+}
