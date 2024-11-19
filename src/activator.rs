@@ -143,7 +143,7 @@ impl Activator for HardSigmoid {
     }
 
     fn derivative(x: f64) -> f64 {
-        if x >= -2.5 && x <= 2.5 {
+        if (-2.5..=2.5).contains(&x) {
             0.2
         } else {
             0.0
