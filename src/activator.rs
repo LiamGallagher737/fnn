@@ -4,6 +4,19 @@ pub trait Activator {
     fn derivative(x: f64) -> f64;
 }
 
+/// The Linear activation function.
+/// Outputs the input as-is. Often used in the output layer for regression tasks.
+pub struct Linear;
+impl Activator for Linear {
+    fn activate(x: f64) -> f64 {
+        x
+    }
+
+    fn derivative(_: f64) -> f64 {
+        1.0
+    }
+}
+
 /// The Sigmoid activation function.
 /// Outputs values between 0 and 1, commonly used for binary classification tasks.
 pub struct Sigmoid;
@@ -103,6 +116,37 @@ impl Activator for ELU {
             1.0
         } else {
             libm::exp(x)
+        }
+    }
+}
+
+/// The Softplus activation function.
+/// A smooth approximation of ReLU, defined as `log(1 + exp(x))`. It avoids the sharp
+/// zero-gradient issue of ReLU for negative inputs.
+pub struct Softplus;
+impl Activator for Softplus {
+    fn activate(x: f64) -> f64 {
+        libm::log(1.0 + libm::exp(x))
+    }
+
+    fn derivative(x: f64) -> f64 {
+        1.0 / (1.0 + libm::exp(-x))
+    }
+}
+
+/// The Hard Sigmoid activation function.
+/// A computationally efficient approximation of the sigmoid function.
+pub struct HardSigmoid;
+impl Activator for HardSigmoid {
+    fn activate(x: f64) -> f64 {
+        (0.2 * x + 0.5).clamp(0.0, 1.0)
+    }
+
+    fn derivative(x: f64) -> f64 {
+        if x >= -2.5 && x <= 2.5 {
+            0.2
+        } else {
+            0.0
         }
     }
 }
